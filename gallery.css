@@ -1,13 +1,43 @@
+html,
+body,
+#gallery-container,
+#gallery-wrapper {
+    height: 100%;
+}
+
 #gallery-container {
     overflow: hidden;
 }
 
-#gallery .gallery-slide {
-    float: left;
-    width: 100%;
+#gallery-wrapper {
+    display: flex;
+    align-items: center;
+    background: #000;
 }
 
-#gallery img {
+#gallery-wrapper .gallery-slide {
+    display: flex;
+    align-items: center;
     max-width: 100%;
+}
+
+#gallery-wrapper img {
+    width: 100%;
     vertical-align: middle;
+}
+
+#gallery-container .gallery-pagination {
+    position: absolute;
+    bottom: 30px;
+    width: 100%;
+    text-align: center;
+}
+
+#gallery-container .gallery-pagination-bullet {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin: 5px;
+    border-radius: 50%;
+    background-color: #fff;
 }
