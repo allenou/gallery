@@ -39,10 +39,10 @@ Gallery.fn = {
 
         }
         var container = document.getElementById('gallery-container')
-        var hammertime = new Hammer(container, hammerOpts);
+        var gallery = new Hammer(container, hammerOpts);
         var _this = this
 
-        hammertime.on('tap', function(e) {
+        gallery.on('tap', function(e) {
             console.log(e)
             var element = e.target
             if (element.nodeName === 'IMG' && e.tapCount === 2) {
@@ -50,16 +50,37 @@ Gallery.fn = {
                     element.removeAttribute('style');
                     return
                 }
-                _this.zoom(e.target)
+                _this.zoom(e.target, e.center.x)
             }
         });
     },
-    zoom: function(element) {
-        var sh = window.screen.height,
+    zoom: function(element, mouseX) {
+        var sw = window.screen.width,
+            sh = window.screen.height,
+            ew = element.clientWidth,
             eh = element.clientHeight,
-            scale = sh / eh
+            scale = sh / eh,
+            fw = sw * scale - sw, //finally width
+            ot = window.screen.width / 3, //one third of the screen width
+            direction,
+            tx
 
-        element.style.webkitTransform = `scale(${scale})`
+        //click on the left of the picture
+        if (0 < mouseX && mouseX < ot) {
+            tx = fw / 2;
+        }
+        // picture width is less than screen width 
+        // or click on the center of the picture
+        else if (sw > ew || ot < mouseX && mouseX < sw / 2) {
+            // element.parentNode.style.width = fw
+            element.style.webkitTransform = `scale(${scale})`
+            return;
+        }
+        //click on the left of the picture
+        else {
+            tx = -(fw / 2);
+        }
+        element.style.webkitTransform = `translate3d(${tx}px, 0px, 0px) scale(${scale})`;
     }
 }
 Gallery.fn.init.prototype = Gallery.fn
