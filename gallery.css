@@ -39,5 +39,9 @@ body,
     height: 10px;
     margin: 5px;
     border-radius: 50%;
-    background-color: #fff;
+    background: rgba(255, 255, 255, .7);
+}
+
+#gallery-container .gallery-pagination-clickable {
+    background-color: lightblue;
 }
