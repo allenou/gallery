@@ -16,7 +16,7 @@ Gallery.fn = {
 
         wrapper.style.width = slidesLength * sw + 'px'
 
-        this.slideIndex = 0
+        this.currentIndex = 0
         this.customOpts = opts
         this.slides = slides
 
@@ -38,14 +38,16 @@ Gallery.fn = {
     },
     events: function() {
         //HANDLE : events
-        var _this = this
+        var _this = this,
+            wrapper = this.wrapper,
+            sw = this.sw
         if (!this.customOpts['zoom']) return
 
         var hammerOpts = {
 
         }
 
-        var gallery = new Hammer(_this.wrapper, hammerOpts);
+        var gallery = new Hammer(wrapper, hammerOpts);
 
         //HANDLE: picture zoom
         gallery.on('tap', function(e) {
@@ -60,78 +62,86 @@ Gallery.fn = {
         });
 
         //HANDLE:picture pan
+        var type
+
         gallery.on('panmove', function(e) {
             var distance
-            console.log(_this.slideIndex)
-            distance = -(_this.sw * _this.slideIndex) + e.deltaX
-            _this.wrapper.style.marginLeft = `${distance}px`;
+            distance = -(sw * _this.currentIndex) + e.deltaX
+            wrapper.style.marginLeft = `${distance}px`;
         })
 
         gallery.on('panend', function(e) {
+            console.log(e)
             var element = e.target,
-                type = e.additionalEvent,
-                mouseX = Math.abs(e.deltaX),
-                sw = _this.sw
+                mouseX = Math.abs(e.deltaX)
+            type = e.additionalEvent // event type
 
-            if (mouseX < sw / 3) { //滑动距离小于屏幕宽度1/3，还原平移
-                _this.wrapper.style.marginLeft = `${-sw * _this.slideIndex}px`;
+            if (mouseX < sw / 3) { //reductive translation
+                wrapper.style.marginLeft = `${-sw * _this.currentIndex}px`;
                 return;
             }
-            _this.slide(type)
+            _this.slide(e.deltaX)
         });
 
         //HANDLE:pagination tap
         var pagination = new Hammer(_this.pagination, {});
         pagination.on('tap', function(e) {
-            var element = e.target
-            var index = element.getAttribute('data-index')
+            var element = e.target,
+                index = element.getAttribute('data-index')
+            type = e.additionalEvent
             if (index) {
-                _this.slideIndex = index
+                _this.currentIndex = index
                 _this.slide()
             }
         });
     },
 
-    slide: function(type) {
-        var sw = this.sw,
+    slide: function(deltaX) {
+        var _this = this,
+            sw = this.sw,
             wrapper = this.wrapper,
             pagination = this.pagination,
-            slideIndex = this.slideIndex,
+            currentIndex = this.currentIndex,
             slidesLength = this.slidesLength
 
-        if (type === 'panleft') {
+        if (deltaX < 0) {
             nextSlide()
-        } else if (type === 'panright') {
+        } else if (deltaX > 0) {
             prevSlide()
         } else {
-            slideTo(slideIndex)
+            slideTo(currentIndex)
         }
 
         function prevSlide() {
-
+            if (currentIndex > 0) {
+                _this.currentIndex = currentIndex -= 1;
+                slideTo(currentIndex);
+            } else {
+                wrapper.style.marginLeft = `${-sw * _this.currentIndex}px`;
+            }
         }
 
         function nextSlide() {
-            if (slideIndex < slidesLength - 1) {
-                slideIndex += 1;
-                slideTo(slideIndex);
-            } else { //最后一张
-                wrapper.style.marginLeft = `${-sw *  slideIndex}px`
+            if (currentIndex < slidesLength - 1) {
+                _this.currentIndex = currentIndex += 1;
+                slideTo(currentIndex);
+            } else { // last picture
+                wrapper.style.marginLeft = `${-sw *  currentIndex}px`
             }
         }
 
         function slideTo() {
             var bullets = pagination.childNodes,
-                bullet, i = 0,
+                i = 0,
                 length = bullets.length
             for (; i < length; i++) {
-                if (slideIndex == i) {
+                if (currentIndex == i) {
                     bullets[i].className += ' gallery-pagination-clickable'
                 } else {
                     bullets[i].className = 'gallery-pagination-bullet'
                 }
             }
-            wrapper.style.marginLeft = `-${sw * slideIndex}px`
+            wrapper.style.marginLeft = `-${sw * currentIndex}px`
         }
     },
     zoom: function(element, mouseX) {
