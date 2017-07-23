@@ -57,10 +57,10 @@ Gallery.fn = {
 
         //HANDLE:picture pan
         gallery.on('panmove', function(e) {
-            var distance
-
-            distance = -(sw * _this.currentIndex) + e.deltaX
-            wrapper.style.marginLeft = `${distance}px`
+            var distance = -(sw * _this.currentIndex) + e.deltaX
+            if (distance < sw / 2) {
+                wrapper.style.marginLeft = `${distance}px`
+            }
         })
 
         gallery.on('panend', function(e) {
