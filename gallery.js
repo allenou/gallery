@@ -12,17 +12,38 @@ Gallery.fn = {
     init: function(element, opts) {
 
         var container = document.getElementById(element),
+            // wrapper = this.wrapper = container.firstElementChild,
             wrapper = this.wrapper = container.firstElementChild,
-            slides = document.getElementsByClassName('gallery-slide'),
+            slides = this.slides = document.getElementsByClassName('gallery-slide'),
             pagination = this.pagination = document.querySelector(opts['pagination']),
             sw = this.sw = window.screen.width,
             slidesLength = this.slidesLength = slides.length
 
         wrapper.style.width = slidesLength * sw + 'px'
 
-        this.currentIndex = 0
+        this.currentIndex = 1
         this.customOpts = opts
-        this.slides = slides
+
+
+        this.inseted = false
+        var firstSlide = slides[0].outerHTML,
+            lastSlide = slides[slidesLength - 1].outerHTML
+
+        function initInsetSlide() {
+            if (!this.inseted) {
+                var lastTpl = document.createElement('div'),
+                    firstTpl = document.createElement('div')
+                lastTpl.innerHTML = lastSlide
+                firstTpl.innerHTML = firstSlide
+                wrapper.insertBefore(lastTpl.firstChild, slides[0])
+                wrapper.appendChild(firstTpl.firstChild)
+
+                wrapper.style.width = sw * slides.length + 'px'
+                this.inseted = true
+                wrapper.style.marginLeft = `${-sw}px`
+            }
+        }
+        initInsetSlide()
 
         this.spot()
         this.events()
@@ -38,12 +59,11 @@ Gallery.fn = {
             i = 0,
             length = slides.length
 
-        for (; i < length; i++) {
+        for (; i < length - 2; i++) {
             bullet = document.createElement('span')
             bullet.className = 'gallery-pagination-bullet'
             bullet.setAttribute('data-index', i)
             pagination.appendChild(bullet)
-            pagination.childNodes[0].className += ' gallery-pagination-clickable'
         }
 
     },
@@ -81,8 +101,12 @@ Gallery.fn = {
             sw = this.sw,
             wrapper = this.wrapper,
             pagination = this.pagination,
+            bullets = pagination.childNodes,
             currentIndex = this.currentIndex,
-            slidesLength = this.slidesLength
+            slides = this.slides,
+            slidesLength = slides.length
+
+
 
         //HANDLE:pagination tap
         if (this.customOpts['paginationClickable']) {
@@ -108,36 +132,35 @@ Gallery.fn = {
         }
 
         function prevSlide() {
-            if (currentIndex > 0) {
-                _this.currentIndex = currentIndex -= 1
-                slideTo(currentIndex)
+            if (currentIndex === 1) {
+                _this.currentIndex = currentIndex = slides.length - 1
             } else {
-                wrapper.style.marginLeft = `${-sw * _this.currentIndex}px`
+                _this.currentIndex = currentIndex -= 1
             }
+            slideTo()
         }
 
         function nextSlide() {
-            if (currentIndex < slidesLength - 1) {
-                _this.currentIndex = currentIndex += 1
-                slideTo(currentIndex)
-            } else { // last picture
-                wrapper.style.marginLeft = `${-sw *  currentIndex}px`
+            _this.currentIndex = currentIndex += 1
+            if (currentIndex === slidesLength - 1) {
+                _this.currentIndex = currentIndex = 1
             }
+            slideTo()
         }
 
         function slideTo() {
-            var bullets = pagination.childNodes,
-                i = 0,
+            var i = 0,
                 length = bullets.length
 
             for (; i < length; i++) {
-                if (currentIndex == i) {
-                    bullets[i].className += ' gallery-pagination-clickable'
+                if (currentIndex == i + 1) {
+                    bullets[i].classList.add('gallery-pagination-clickable')
+
                 } else {
-                    bullets[i].className = 'gallery-pagination-bullet'
+                    bullets[i].classList.remove('gallery-pagination-clickable')
                 }
             }
-            wrapper.style.marginLeft = `-${sw * currentIndex}px`
+            wrapper.style.marginLeft = `-${sw * _this.currentIndex}px`
         }
     },
     zoom: function() {
