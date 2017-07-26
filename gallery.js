@@ -16,34 +16,28 @@ Gallery.fn = {
             wrapper = this.wrapper = container.firstElementChild,
             slides = this.slides = document.getElementsByClassName('gallery-slide'),
             pagination = this.pagination = document.querySelector(opts['pagination']),
-            sw = this.sw = window.screen.width,
-            slidesLength = this.slidesLength = slides.length
+            sw = this.sw = window.screen.width
 
-        wrapper.style.width = slidesLength * sw + 'px'
+        wrapper.style.width = slides.length * sw + 'px'
 
         this.currentIndex = 1
         this.customOpts = opts
 
-
-        this.inseted = false
         var firstSlide = slides[0].outerHTML,
-            lastSlide = slides[slidesLength - 1].outerHTML
+            lastSlide = slides[slides.length - 1].outerHTML
 
-        function initInsetSlide() {
-            if (!this.inseted) {
-                var lastTpl = document.createElement('div'),
-                    firstTpl = document.createElement('div')
-                lastTpl.innerHTML = lastSlide
-                firstTpl.innerHTML = firstSlide
-                wrapper.insertBefore(lastTpl.firstChild, slides[0])
-                wrapper.appendChild(firstTpl.firstChild)
+        //init inset
+        var lastTpl = document.createElement('div'),
+            firstTpl = document.createElement('div')
+        lastTpl.innerHTML = lastSlide
+        firstTpl.innerHTML = firstSlide
+        wrapper.insertBefore(lastTpl.firstChild, slides[0])
+        wrapper.appendChild(firstTpl.firstChild)
 
-                wrapper.style.width = sw * slides.length + 'px'
-                this.inseted = true
-                wrapper.style.marginLeft = `${-sw}px`
-            }
-        }
-        initInsetSlide()
+        wrapper.style.width = sw * slides.length + 'px'
+        this.inseted = true
+        wrapper.style.marginLeft = `${-sw}px`
+
 
         this.spot()
         this.events()
@@ -98,30 +92,25 @@ Gallery.fn = {
 
     slide: function(deltaX) {
         var _this = this,
-            sw = this.sw,
-            wrapper = this.wrapper,
             pagination = this.pagination,
             bullets = pagination.childNodes,
             currentIndex = this.currentIndex,
             slides = this.slides,
-            slidesLength = slides.length
 
+            //HANDLE:pagination tap
+            if (this.customOpts['paginationClickable']) {
+                var paginationtime = new Hammer(pagination)
 
+                paginationtime.on('tap', function(e) {
+                    var element = e.target,
+                        index = element.getAttribute('data-index')
 
-        //HANDLE:pagination tap
-        if (this.customOpts['paginationClickable']) {
-            var paginationtime = new Hammer(_this.pagination)
-
-            paginationtime.on('tap', function(e) {
-                var element = e.target,
-                    index = element.getAttribute('data-index')
-
-                if (index) {
-                    _this.currentIndex = index
-                    _this.slide()
-                }
-            })
-        }
+                    if (index) {
+                        _this.currentIndex = index
+                        _this.slide()
+                    }
+                })
+            }
 
         if (deltaX < 0) {
             nextSlide()
@@ -143,7 +132,7 @@ Gallery.fn = {
         function nextSlide() {
             _this.currentIndex = currentIndex += 1
 
-            if (currentIndex === slidesLength - 1) {
+            if (currentIndex === slides.length - 1) {
                 _this.currentIndex = currentIndex = 1
             }
             slideTo()
@@ -161,7 +150,7 @@ Gallery.fn = {
                     bullets[i].classList.remove('gallery-pagination-clickable')
                 }
             }
-            wrapper.style.marginLeft = `-${sw * _this.currentIndex}px`
+            this.wrapper.style.marginLeft = `-${this.sw * _this.currentIndex}px`
         }
     },
     zoom: function() {
