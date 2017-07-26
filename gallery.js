@@ -132,16 +132,17 @@ Gallery.fn = {
         }
 
         function prevSlide() {
-            if (currentIndex === 1) {
-                _this.currentIndex = currentIndex = slides.length - 1
-            } else {
-                _this.currentIndex = currentIndex -= 1
+            _this.currentIndex = currentIndex -= 1
+
+            if (currentIndex === 0) {
+                _this.currentIndex = currentIndex = slides.length - 2
             }
             slideTo()
         }
 
         function nextSlide() {
             _this.currentIndex = currentIndex += 1
+
             if (currentIndex === slidesLength - 1) {
                 _this.currentIndex = currentIndex = 1
             }
