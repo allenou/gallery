@@ -18,11 +18,13 @@ body,
 #gallery-wrapper .gallery-slide {
     display: flex;
     align-items: center;
-    max-width: 100%;
+    justify-content: center;
+    width: 100%;
 }
 
 #gallery-wrapper img {
-    width: 100%;
+    max-width: 100%;
+    max-height: 100%;
     vertical-align: middle;
 }
 
