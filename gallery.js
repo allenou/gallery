@@ -12,7 +12,6 @@ Gallery.fn = {
     init: function(element, opts) {
 
         var container = document.getElementById(element),
-            // wrapper = this.wrapper = container.firstElementChild,
             wrapper = this.wrapper = container.firstElementChild,
             slides = this.slides = document.getElementsByClassName('gallery-slide'),
             pagination = this.pagination = document.querySelector(opts['pagination']),
@@ -35,7 +34,7 @@ Gallery.fn = {
         wrapper.appendChild(firstTpl.firstChild)
 
         wrapper.style.width = sw * slides.length + 'px'
-        this.inseted = true
+
         wrapper.style.marginLeft = `${-sw}px`
 
 
@@ -95,22 +94,22 @@ Gallery.fn = {
             pagination = this.pagination,
             bullets = pagination.childNodes,
             currentIndex = this.currentIndex,
-            slides = this.slides,
+            slides = this.slides
 
-            //HANDLE:pagination tap
-            if (this.customOpts['paginationClickable']) {
-                var paginationtime = new Hammer(pagination)
+        //HANDLE:pagination tap
+        if (this.customOpts['paginationClickable']) {
+            var paginationtime = new Hammer(pagination)
 
-                paginationtime.on('tap', function(e) {
-                    var element = e.target,
-                        index = element.getAttribute('data-index')
+            paginationtime.on('tap', function(e) {
+                var element = e.target,
+                    index = element.getAttribute('data-index')
 
-                    if (index) {
-                        _this.currentIndex = index
-                        _this.slide()
-                    }
-                })
-            }
+                if (index) {
+                    _this.currentIndex = currentIndex = Number(index) + 1
+                    slideTo()
+                }
+            })
+        }
 
         if (deltaX < 0) {
             nextSlide()
@@ -150,7 +149,7 @@ Gallery.fn = {
                     bullets[i].classList.remove('gallery-pagination-clickable')
                 }
             }
-            this.wrapper.style.marginLeft = `-${this.sw * _this.currentIndex}px`
+            _this.wrapper.style.marginLeft = `-${_this.sw * _this.currentIndex}px`
         }
     },
     zoom: function() {
