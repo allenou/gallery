@@ -1,50 +1,80 @@
 (function() {
     'use strict'
-    var Gallery = function(selector, opts) {
+    var Gallery = function(selector, customOpts) {
         if (!(this instanceof Gallery)) return new Gallery(selector, opts)
 
-        var container = document.getElementById(selector),
+        // default opptions
+        var opts = {
+            slide: '.gallery-slide',
+            pagination: '.gallery-pagination',
+            paginationClickable: false,
+            zoom: false
+        }
+
+        //merge opptions
+        for (var opt in opts) {
+            if (customOpts[opt]) {
+                opts[opt] = customOpts[opt]
+            }
+        }
+
+        /**
+         * query DOM
+         * @param {String} selector : css selector
+         */
+        function query(selector) {
+            var elements = document.querySelectorAll(selector)
+            return elements.length > 1 ? elements : elements[0]
+        }
+
+        var container = query(selector),
             wrapper = container.firstElementChild,
-            slides = document.getElementsByClassName('gallery-slide'),
-            pagination = document.querySelector(opts['pagination']),
+
             sw = window.screen.width
 
+        //init inset
+        var slides = query(opts['slide'])
+        console.log(opts)
         var firstSlide = slides[0].outerHTML,
             lastSlide = slides[slides.length - 1].outerHTML
 
-        wrapper.style.width = slides.length * sw + 'px'
-
-        //init inset
+        var tplDiv = document.createElement('div')
         var currentIndex = 1
-        var lastTpl = document.createElement('div'),
-            firstTpl = document.createElement('div')
-        lastTpl.innerHTML = lastSlide
-        firstTpl.innerHTML = firstSlide
-        wrapper.insertBefore(lastTpl.firstChild, slides[0])
-        wrapper.appendChild(firstTpl.firstChild)
-        wrapper.style.width = sw * slides.length + 'px'
 
-        var length = slides.length
+        tplDiv.innerHTML = lastSlide + firstSlide
+        wrapper.insertBefore(tplDiv.firstChild, slides[0])
+        wrapper.appendChild(tplDiv.lastChild)
 
-        //HANDLE : pagination
+        /*==============
+         * pagination
+         ==============*/
+        //init bullet
+        var pagination
         if (opts['pagination']) {
+            pagination = query(opts['pagination'])
             var i = 0
-            for (; i < length - 2; i++) {
+            for (; i < slides.length; i++) {
                 var bullet = document.createElement('span')
                 bullet.className = 'gallery-pagination-bullet'
                 bullet.setAttribute('data-index', i)
                 pagination.appendChild(bullet)
             }
         }
+
+        slides = query('.gallery-slide') // inset after query again
+        wrapper.style.width = sw * slides.length + 'px' //set the wrapper width
+
         var gallery = new Hammer(wrapper)
 
         /*==============
          * slide
          ==============*/
         //HANDLE:click  slide
-        var bullets = pagination.childNodes
-        slideTo(currentIndex)
-        if (opts['paginationClickable']) {
+
+
+        var bullets
+        if (pagination && opts['paginationClickable']) {
+            bullets = pagination.childNodes
             var paginationtime = new Hammer(pagination)
 
             paginationtime.on('tap', function(e) {
@@ -96,16 +126,19 @@
             slideTo(currentIndex)
         }
 
+        slideTo(currentIndex) //default slide to the fisrt slide
+
         function slideTo(appointIndex) {
-            var i = 0,
-                length = bullets.length
+            if (bullets) {
+                var i = 0,
+                    length = bullets.length
+                for (; i < length; i++) {
+                    if (appointIndex == i + 1) {
+                        bullets[i].classList.add('gallery-pagination-clickable')
 
-            for (; i < length; i++) {
-                if (appointIndex == i + 1) {
-                    bullets[i].classList.add('gallery-pagination-clickable')
-
-                } else {
-                    bullets[i].classList.remove('gallery-pagination-clickable')
+                    } else {
+                        bullets[i].classList.remove('gallery-pagination-clickable')
+                    }
                 }
             }
             wrapper.style.marginLeft = `-${sw * appointIndex}px`

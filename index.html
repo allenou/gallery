@@ -11,8 +11,8 @@
 </head>
 
 <body>
-    <div id="gallery-container">
-        <div id="gallery-wrapper">
+    <div class="gallery-container">
+        <div class="gallery-wrapper">
             <div class="gallery-slide" data-index="0">
                 <img src="http://pic-bucket.nosdn.127.net/photo/0031/2017-07-18/CPKSOAU43S010031NOS.jpeg" alt="">
             </div>
@@ -26,9 +26,9 @@
         <div class="gallery-pagination"></div>
     </div>
     <script src="https://cdn.bootcss.com/hammer.js/2.0.8/hammer.min.js"></script>
-    <script src="galleryre.js"></script>
+    <script src="gallery.js"></script>
     <script>
-        var gallery = new Gallery('gallery-container', {
+        var gallery = new Gallery('.gallery-container', {
             pagination: '.gallery-pagination',
             paginationClickable: true,
             zoom: true
