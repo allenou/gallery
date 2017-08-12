@@ -8,7 +8,8 @@
             slide: '.gallery-slide',
             pagination: '.gallery-pagination',
             paginationClickable: false,
-            zoom: false
+            zoom: false,
+            resize: true
         }
 
         //merge opptions
@@ -34,7 +35,7 @@
 
         //init inset
         var slides = query(opts['slide'])
-        console.log(opts)
+
         var firstSlide = slides[0].outerHTML,
             lastSlide = slides[slides.length - 1].outerHTML
 
@@ -188,6 +189,16 @@
                 }
                 img.style.webkitTransform = `translate3d(${tx}px, 0px, 0px) scale(${scale})`
             }
+        }
+
+        function resize() {
+            sw = window.screen.width
+            wrapper.style.width = sw * slides.length + 'px' //set the wrapper width
+            slideTo(currentIndex)
+        }
+
+        if (opts['resize']) {
+            window.addEventListener('resize', resize)
         }
     }
 
