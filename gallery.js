@@ -9,7 +9,9 @@
             pagination: '.gallery-pagination',
             paginationClickable: false,
             zoom: false,
-            resize: true
+            resize: true,
+            lazyLoading: false,
+            lazy: '.lazy'
         }
 
         //merge opptions
@@ -129,6 +131,10 @@
 
         slideTo(currentIndex) //default slide to the fisrt slide
 
+        /**
+         * slideTo
+         * @param {Number} appointIndex  : next slide index
+         */
         function slideTo(appointIndex) {
             if (bullets) {
                 var i = 0,
@@ -142,6 +148,7 @@
                     }
                 }
             }
+            lazyLoading(appointIndex)
             wrapper.style.marginLeft = `-${sw * appointIndex}px`
         }
 
@@ -188,6 +195,25 @@
                     tx = -(fw / 2)
                 }
                 img.style.webkitTransform = `translate3d(${tx}px, 0px, 0px) scale(${scale})`
+            }
+        }
+        /**
+         * lazyLoading
+         * @param {Number} index: next slide index
+         */
+        function lazyLoading(index) {
+            if (!opts['lazyLoading']) return
+
+            var lazyElements = document.querySelectorAll(opts['lazy']),
+                img, dataSrc
+
+            // element not is image
+            if (lazyElements[index].nodeName === 'IMG') {
+                img = lazyElements[index]
+                dataSrc = img.getAttribute('data-src')
+                if (dataSrc) {
+                    img.setAttribute('src', dataSrc)
+                }
             }
         }
 
