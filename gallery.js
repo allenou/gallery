@@ -1,5 +1,7 @@
 (function() {
+
     'use strict'
+
     var Gallery = function(selector, customOpts) {
         if (!(this instanceof Gallery)) return new Gallery(selector, opts)
 
@@ -10,6 +12,7 @@
             paginationClickable: false,
             zoom: false,
             resize: true,
+            loop: false,
             lazyLoading: false,
             lazy: '.lazy'
         }
@@ -30,33 +33,32 @@
             return elements.length > 1 ? elements : elements[0]
         }
 
-        var container = query(selector),
-            wrapper = container.firstElementChild,
-
-            sw = window.screen.width
-
-        //init inset
+        var container = query(selector)
         var slides = query(opts['slide'])
+        var wrapper = container.firstElementChild
+        var sw = window.screen.width
+        var currentIndex = 0
 
-        var firstSlide = slides[0].outerHTML,
-            lastSlide = slides[slides.length - 1].outerHTML
+        if (opts.loop) {
+            //inset firt slide and last slide
+            var tplDiv = document.createElement('div')
+            var firstSlide = slides[0].outerHTML
+            var lastSlide = slides[slides.length - 1].outerHTML
 
-        var tplDiv = document.createElement('div')
-        var currentIndex = 1
-
-        tplDiv.innerHTML = lastSlide + firstSlide
-        wrapper.insertBefore(tplDiv.firstChild, slides[0])
-        wrapper.appendChild(tplDiv.lastChild)
+            tplDiv.innerHTML = lastSlide + firstSlide
+            wrapper.insertBefore(tplDiv.firstChild, slides[0])
+            wrapper.appendChild(tplDiv.lastChild)
+        }
 
         /*==============
          * pagination
          ==============*/
         //init bullet
         var pagination
-        if (opts['pagination']) {
-            pagination = query(opts['pagination'])
-            var i = 0
-            for (; i < slides.length; i++) {
+        if (opts.pagination) {
+            pagination = query(opts.pagination)
+
+            for (var i = 0; i < slides.length; i++) {
                 var bullet = document.createElement('span')
                 bullet.className = 'gallery-pagination-bullet'
                 bullet.setAttribute('data-index', i)
@@ -64,7 +66,7 @@
             }
         }
 
-        slides = query('.gallery-slide') // inset after query again
+        // slides = query('.gallery-slide') // inset after query again
         wrapper.style.width = sw * slides.length + 'px' //set the wrapper width
 
         var gallery = new Hammer(wrapper)
@@ -74,12 +76,12 @@
          ==============*/
         //HANDLE:click  slide
 
-
         var bullets
-        if (pagination && opts['paginationClickable']) {
+        if (pagination && opts.paginationClickable) {
             bullets = pagination.childNodes
             var paginationtime = new Hammer(pagination)
 
+            //listen pagination tap event
             paginationtime.on('tap', function(e) {
                 var element = e.target,
                     index = element.getAttribute('data-index')
@@ -90,24 +92,34 @@
                 }
             })
         }
+
         gallery.on('panmove', function(e) {
             var distance = -(sw * currentIndex) + e.deltaX
-            if (distance < sw / 2) {
-                wrapper.style.marginLeft = `${distance}px`
-            }
+            wrapper.style.webkitTransform = `translate3d(${distance}px,0px,0px)`
         })
-        gallery.on('panend', function(e) {
-            var element = e.target,
-                mouseX = Math.abs(e.deltaX)
 
-            if (mouseX < sw / 3) { //reductive translation
-                wrapper.style.marginLeft = `${-sw * currentIndex}px`
-                return
-            }
+        gallery.on('panend', function(e) {
+            // var element = e.target
+            var mouseX = Math.abs(e.deltaX)
+
+            wrapper.style.transition = "-webkit-transform 300ms";
+            wrapper.style.webkitTransform = `translate3d(-${sw * currentIndex}px,0px,0px)`
+
+            setTimeout(() => { //reset time
+                wrapper.style.transition = "-webkit-transform 0ms"
+            }, 300)
+
+            //reductive translation
+            if (mouseX < sw / 2) return
+
             if (e.deltaX < 0) {
-                nextSlide()
+                if (currentIndex !== slides.length - 1) {
+                    nextSlide()
+                }
             } else if (e.deltaX > 0) {
-                prevSlide()
+                if (currentIndex !== 0) {
+                    prevSlide()
+                }
             } else {
                 slideTo(currentIndex)
             }
@@ -115,18 +127,21 @@
 
         function prevSlide() {
             currentIndex -= 1
-            if (currentIndex === 0) {
-                currentIndex = slides.length - 2
-            }
+                // if (currentIndex === 0) {
+                //     currentIndex = slides.length - 2
+                // }
             slideTo(currentIndex)
         }
 
         function nextSlide() {
             currentIndex += 1
-            if (currentIndex === slides.length - 1) {
-                currentIndex = 1
-            }
             slideTo(currentIndex)
+
+            // if (opts.loop) {
+            //     if (currentIndex === slides.length - 1) {
+            //         currentIndex = 1
+            //     }
+            // }
         }
 
         slideTo(currentIndex) //default slide to the fisrt slide
@@ -137,10 +152,8 @@
          */
         function slideTo(appointIndex) {
             if (bullets) {
-                var i = 0,
-                    length = bullets.length
-                for (; i < length; i++) {
-                    if (appointIndex == i + 1) {
+                for (var i = 0; i < bullets.length; i++) {
+                    if (appointIndex == i) {
                         bullets[i].classList.add('gallery-pagination-clickable')
 
                     } else {
@@ -149,7 +162,8 @@
                 }
             }
             lazyLoading(appointIndex)
-            wrapper.style.marginLeft = `-${sw * appointIndex}px`
+
+            wrapper.style.webkitTransform = `translate3d(-${sw * appointIndex}px,0px,0px)`
         }
 
         /*==============
@@ -194,9 +208,11 @@
                 } else { //right
                     tx = -(fw / 2)
                 }
+
                 img.style.webkitTransform = `translate3d(${tx}px, 0px, 0px) scale(${scale})`
             }
         }
+
         /**
          * lazyLoading
          * @param {Number} index: next slide index
@@ -204,12 +220,11 @@
         function lazyLoading(index) {
             if (!opts['lazyLoading']) return
 
-            var lazyElements = document.querySelectorAll(opts['lazy']),
+            var elements = query(opts['lazy']),
                 img, dataSrc
 
-            // element not is image
-            if (lazyElements[index].nodeName === 'IMG') {
-                img = lazyElements[index]
+            if (elements.length > 0 && elements[index].nodeName === 'IMG') {
+                img = elements[index]
                 dataSrc = img.getAttribute('data-src')
                 if (dataSrc) {
                     img.setAttribute('src', dataSrc)

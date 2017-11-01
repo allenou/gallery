@@ -7,12 +7,12 @@ body,
 
 .gallery-container {
     overflow: hidden;
+    background: #000;
 }
 
 .gallery-wrapper {
     display: flex;
     align-items: center;
-    background: #000;
 }
 
 .gallery-wrapper .gallery-slide {
@@ -45,5 +45,5 @@ body,
 }
 
 .gallery-container .gallery-pagination-clickable {
-    background-color: lightblue;
+    background-color: rgb(6, 192, 248);
 }
