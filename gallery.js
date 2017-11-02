@@ -48,6 +48,8 @@
             tplDiv.innerHTML = lastSlide + firstSlide
             wrapper.insertBefore(tplDiv.firstChild, slides[0])
             wrapper.appendChild(tplDiv.lastChild)
+
+            currentIndex = 1
         }
 
         /*==============
@@ -66,10 +68,8 @@
             }
         }
 
-        // slides = query('.gallery-slide') // inset after query again
+        slides = query('.gallery-slide') // inset after query again
         wrapper.style.width = sw * slides.length + 'px' //set the wrapper width
-
-        var gallery = new Hammer(wrapper)
 
         /*==============
          * slide
@@ -87,11 +87,17 @@
                     index = element.getAttribute('data-index')
 
                 if (index) {
-                    var appointIndex = Number(index) + 1
-                    slideTo(appointIndex)
+                    if (opts.loop) {
+                        currentIndex = Number(index) + 1
+                    } else {
+                        currentIndex = Number(index)
+                    }
+                    slideTo()
                 }
             })
         }
+
+        var gallery = new Hammer(wrapper)
 
         gallery.on('panmove', function(e) {
             var distance = -(sw * currentIndex) + e.deltaX
@@ -99,7 +105,6 @@
         })
 
         gallery.on('panend', function(e) {
-            // var element = e.target
             var mouseX = Math.abs(e.deltaX)
 
             wrapper.style.transition = "-webkit-transform 300ms";
@@ -112,58 +117,65 @@
             //reductive translation
             if (mouseX < sw / 2) return
 
-            if (e.deltaX < 0) {
-                if (currentIndex !== slides.length - 1) {
-                    nextSlide()
-                }
-            } else if (e.deltaX > 0) {
-                if (currentIndex !== 0) {
-                    prevSlide()
-                }
+            if (e.deltaX > 0) {
+                if (!opts.loop && currentIndex === 0) return
+                prevSlide()
             } else {
-                slideTo(currentIndex)
+                if (!opts.loop && currentIndex === slides.length - 1) return
+                nextSlide()
             }
         })
 
         function prevSlide() {
             currentIndex -= 1
-                // if (currentIndex === 0) {
-                //     currentIndex = slides.length - 2
-                // }
-            slideTo(currentIndex)
+
+            slideTo()
+            if (opts.loop && currentIndex === 0) {
+                currentIndex = slides.length - 2
+            }
         }
 
         function nextSlide() {
             currentIndex += 1
-            slideTo(currentIndex)
 
-            // if (opts.loop) {
-            //     if (currentIndex === slides.length - 1) {
-            //         currentIndex = 1
-            //     }
-            // }
+            slideTo()
+            if (opts.loop && currentIndex === slides.length - 1) {
+                currentIndex = 1
+            }
         }
 
-        slideTo(currentIndex) //default slide to the fisrt slide
+        slideTo() //default slide to the fisrt slide
 
         /**
          * slideTo
-         * @param {Number} appointIndex  : next slide index
          */
-        function slideTo(appointIndex) {
+        function slideTo() {
             if (bullets) {
-                for (var i = 0; i < bullets.length; i++) {
-                    if (appointIndex == i) {
-                        bullets[i].classList.add('gallery-pagination-clickable')
+                var activeIndex
 
+                if (!opts.loop) {
+                    activeIndex = currentIndex
+                } else {
+                    activeIndex = currentIndex - 1
+                    if (activeIndex >= bullets.length) {
+                        activeIndex = 0
+                    }
+                    if (activeIndex < 0) {
+                        activeIndex = bullets.length - 1
+                    }
+                }
+
+                for (var i = 0; i < bullets.length; i++) {
+                    if (activeIndex == i) {
+                        bullets[i].classList.add('gallery-pagination-clickable')
                     } else {
                         bullets[i].classList.remove('gallery-pagination-clickable')
                     }
                 }
             }
-            lazyLoading(appointIndex)
+            lazyLoading()
 
-            wrapper.style.webkitTransform = `translate3d(-${sw * appointIndex}px,0px,0px)`
+            wrapper.style.webkitTransform = `translate3d(-${sw * currentIndex}px,0px,0px)`
         }
 
         /*==============
@@ -212,19 +224,18 @@
                 img.style.webkitTransform = `translate3d(${tx}px, 0px, 0px) scale(${scale})`
             }
         }
-
-        /**
+        /*==============
          * lazyLoading
-         * @param {Number} index: next slide index
-         */
-        function lazyLoading(index) {
-            if (!opts['lazyLoading']) return
+        ==============*/
 
-            var elements = query(opts['lazy']),
+        function lazyLoading() {
+            if (!opts.lazyLoading) return
+
+            var elements = query(opts.lazy),
                 img, dataSrc
 
-            if (elements.length > 0 && elements[index].nodeName === 'IMG') {
-                img = elements[index]
+            if (elements.length > 0 && elements[currentIndex].nodeName === 'IMG') {
+                img = elements[currentIndex]
                 dataSrc = img.getAttribute('data-src')
                 if (dataSrc) {
                     img.setAttribute('src', dataSrc)
@@ -232,14 +243,17 @@
             }
         }
 
+        /*==============
+         * resize
+         ==============*/
+        if (opts.resize) {
+            window.addEventListener('resize', resize)
+        }
+
         function resize() {
             sw = window.screen.width
             wrapper.style.width = sw * slides.length + 'px' //set the wrapper width
-            slideTo(currentIndex)
-        }
-
-        if (opts['resize']) {
-            window.addEventListener('resize', resize)
+            slideTo()
         }
     }
 
