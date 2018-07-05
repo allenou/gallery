@@ -1,0 +1,8 @@
+{
+  "name": "gallery",
+  "version": "1.0.0",
+  "main": "gallery.js",
+  "repository": "https://github.com/allenou/gallery.git",
+  "author": "AllenOu <allenseac@gmail.com>",
+  "license": "GLWT"
+}

@@ -34,7 +34,7 @@
         }
 
         var container = query(selector)
-        var slides = query(opts['slide'])
+        var slides = query(opts.slide)
         var wrapper = container.firstElementChild
         var sw = window.screen.width
         var currentIndex = 0
@@ -68,7 +68,7 @@
             }
         }
 
-        slides = query('.gallery-slide') // inset after query again
+        slides = query(opts.slide) // inset after query again
         wrapper.style.width = sw * slides.length + 'px' //set the wrapper width
 
         /*==============
