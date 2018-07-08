@@ -26,16 +26,23 @@
         }
 
         /**
-         * query DOM
+         * @description query DOM
          * @param {String} selector : css selector
+         * @return {Object} NodeItem
          */
-        function query(selector) {
-            var elements = document.querySelectorAll(selector)
-            return elements.length > 1 ? elements : elements[0]
+        function query(s) {
+            return document.querySelector(s)
         }
-
+        /**
+         * @description query DOM
+         * @param {String} selector : css selector
+         * @return {Object} NodeList
+         */
+        function queryAll(s) {
+            return document.querySelectorAll(s)
+        }
         var container = query(selector)
-        var slides = query(opts.slide)
+        var slides = queryAll(opts.slide)
         var wrapper = container.firstElementChild
         var sw = window.screen.width
         var currentIndex = 0
@@ -83,7 +90,7 @@
             }
         }
 
-        slides = query(opts.slide) // inset after query again
+        slides = queryAll(opts.slide) // inset after query again
         wrapper.style.width = sw * slides.length + 'px' //set the wrapper width
 
         /*==============
@@ -244,9 +251,9 @@
         ==============*/
 
         function lazyLoadingNextSlide() {
-            if(!opts.lazyLoading) return
+            if (!opts.lazyLoading) return
 
-            var elements = query(opts.lazy),
+            var elements = queryAll(opts.lazy),
                 img, dataSrc
             if (elements.length > 0 && elements[currentIndex].nodeName === 'IMG') {
                 img = elements[currentIndex]
