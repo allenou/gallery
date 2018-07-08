@@ -14,6 +14,7 @@
             resize: true,
             loop: false,
             lazyLoading: false,
+            base64: false,
             lazy: '.lazy'
         }
 
@@ -49,9 +50,23 @@
             wrapper.insertBefore(tplDiv.firstChild, slides[0])
             wrapper.appendChild(tplDiv.lastChild)
 
-            currentIndex = 1
+            currentIndex = 1 // set the default slide index
+        }
+        /**
+         * @description traversing slides
+         * @param {Function} cb callback 
+         */
+        function traversingSlides(cb) {
+            for (var i = 0; i < slides.length; i++) {
+                cb(i)
+            }
         }
 
+        function init() {
+            traversingSlides(function(index) {
+
+            })
+        }
         /*==============
          * pagination
          ==============*/
@@ -173,8 +188,8 @@
                     }
                 }
             }
-            lazyLoading()
 
+            lazyLoadingNextSlide()
             wrapper.style.webkitTransform = `translate3d(-${sw * currentIndex}px,0px,0px)`
         }
 
@@ -228,18 +243,46 @@
          * lazyLoading
         ==============*/
 
-        function lazyLoading() {
-            if (!opts.lazyLoading) return
+        function lazyLoadingNextSlide() {
+            if(!opts.lazyLoading) return
 
             var elements = query(opts.lazy),
                 img, dataSrc
-
             if (elements.length > 0 && elements[currentIndex].nodeName === 'IMG') {
                 img = elements[currentIndex]
+
                 dataSrc = img.getAttribute('data-src')
                 if (dataSrc) {
-                    img.setAttribute('src', dataSrc)
+                    if (!opts.base64) {
+                        img.setAttribute('src', dataSrc)
+                    } else {
+                        convertImgToBase64(dataSrc, function(base64) {
+                            img.setAttribute('src', base64)
+                        })
+                    }
                 }
+            }
+        }
+        /*==============
+         * base64
+        ==============*/
+        /**
+         * @description Convert image to base64 string
+         * @param {String} src image path 
+         * @param {Function} cb callback
+         */
+        function convertImgToBase64(src, cb) {
+            var image = new Image()
+            image.src = src
+            image.onload = function() {
+                var canvas = document.createElement('canvas')
+                canvas.width = image.width
+                canvas.height = image.height
+                canvas.getContext('2d').drawImage(image, 0, 0)
+                cb(canvas.toDataURL())
+            }
+            image.onerror = function() {
+                throw ('Image loaded error, Please check the image path')
             }
         }
 
